@@ -16,11 +16,11 @@ namespace PipesFactory
         private readonly Action<Chair> _doAction;
         private readonly int delay;
 
-        private readonly ConcurrentQueue<Chair?> _inQueue = new ConcurrentQueue<Chair?>();
+        private ConcurrentQueue<Chair> _inQueue = new ConcurrentQueue<Chair>();
 
-        private readonly ConcurrentQueue<Chair> _outQueue = new ConcurrentQueue<Chair>();
+        private ConcurrentQueue<Chair> _outQueue = new ConcurrentQueue<Chair>();
 
-        public async void Work()
+        public async Task Work()
         {
             while (!Stopped)
             {
@@ -29,6 +29,8 @@ namespace PipesFactory
                 while (!_inQueue.TryDequeue(out toWorkOn))
                 {
                     await Task.Delay(10);
+
+                    //Console.WriteLine($"{_name}");
                 }
 
 
@@ -52,14 +54,19 @@ namespace PipesFactory
             this.delay = delay;
         }
 
-        public bool TryDequeue(out Chair? toWorkOn)
-        {
-            return _outQueue.TryDequeue(out toWorkOn);
-        }
-
-        public void Queue(Chair? toWorkOn)
+        public void Queue(Chair toWorkOn)
         {
             _inQueue.Enqueue(toWorkOn);
+        }
+
+        public void ConnectInput(Filter filter)
+        {
+            _inQueue = filter._outQueue;
+        }
+
+        public void ConnectOutput(Filter filter)
+        {
+            filter._inQueue = _outQueue;
         }
     }
 }

@@ -16,13 +16,7 @@
 
             Filter packageChairFilter = new Filter("package chair", chair => chair.Packaged = true,1);
 
-            Pipe pipe1 = new Pipe(cutSeatFilter, assembleFeetFilter);
-
-            Pipe pipe2 = new Pipe(assembleFeetFilter, assembleBackrestFilter);
-
-            Pipe pipe3 = new Pipe(assembleBackrestFilter, assembleStabilizerFilter);
-
-            Pipe pipe4 = new Pipe(assembleStabilizerFilter, packageChairFilter);
+            
 
             var chairs = new List<Chair>();
 
@@ -32,14 +26,23 @@
                 cutSeatFilter.Queue(chairs.Last());
             }
 
-            var task = pipe1.Start();
 
-            var task2 = pipe2.Start();
+            assembleFeetFilter.ConnectInput(cutSeatFilter);
+            assembleBackrestFilter.ConnectInput(assembleFeetFilter);
+            assembleStabilizerFilter.ConnectInput(assembleBackrestFilter);
+            packageChairFilter.ConnectInput(assembleStabilizerFilter);
 
-            var task3 = pipe3.Start();
-            var task4 = pipe4.Start();
 
-            await Task.WhenAll(task, task2, task3, task4);
+            var task = cutSeatFilter.Work();
+
+            var task2 = assembleFeetFilter.Work();
+
+            var task3 = assembleBackrestFilter.Work();
+            var task4 = assembleStabilizerFilter.Work();
+
+            var task5 = packageChairFilter.Work();
+
+            await Task.WhenAll(task, task2, task3, task4,task5);
 
             chairs.ForEach(chair => Console.WriteLine(chair));
 
